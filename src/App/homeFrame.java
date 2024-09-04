@@ -187,6 +187,9 @@ public class homeFrame extends JFrame {
             }
         });
 
+
+        //md5HashButton
+        //This will generate the MD5 hash of the GenerateTextFile.java file
         md5HashButton.addActionListener(e -> {
             try {
                 File file = new File("src/data/GenerateTextFile.java");
@@ -198,6 +201,9 @@ public class homeFrame extends JFrame {
             }
         });
 
+
+
+        //Add buttons to panel
         panel.add(fileEncryptButton);
         panel.add(fileDecryptButton);
         panel.add(inputButton);

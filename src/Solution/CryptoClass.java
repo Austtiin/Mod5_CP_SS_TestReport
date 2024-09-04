@@ -134,6 +134,11 @@ public class CryptoClass {
         }
     }
 
+
+    //Decrypt method
+    //This method will take in the data and the algorithm
+    //It will decrypt the data and return the decrypted data
+
     private static String decrypt(String data, String algorithm) {
         try {
             if (CHACHA_ALGORITHM.equals(algorithm)) {

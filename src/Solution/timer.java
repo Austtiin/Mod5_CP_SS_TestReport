@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class timer {
+
+    //variables to store the start and end time of the timer
     private long startTime;
     private long endTime;
     private List<Long> averageTimes = new ArrayList<>();
