@@ -5,7 +5,7 @@
 //Rasmussen University
 //CEN4071C
 //Professor Zayaz
-//09/03/2024
+//09/04/2024
 
 //This is the main class that will run the program
 //We have moved over our code and cleaned it up to make it more readable.
@@ -35,7 +35,9 @@ Uses System.currentTimeMillis() method in a “stopwatch” style test scheme
 */
 
 
-//THis week we will be adding the ChaCha encryption algorithm to our program
+//This week we are going to add a stopwatch to our program to calculate the time it takes to encrypt a large text file using AES, Blowfish, and RC4.
+//This class will be universal so we can use it in our CryptoClass.java file.
+
 package Solution;
 import App.homeFrame;
 import javax.swing.*;

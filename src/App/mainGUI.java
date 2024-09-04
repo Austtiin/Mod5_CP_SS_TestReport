@@ -1,6 +1,11 @@
 //mainGUI.java
 //This is the main class that will run the program / start the GUI
 
+//Austin Stephens
+//Rasmussen University
+//CEN4071C
+//Professor Zayaz
+//09/04/2024
 
 package App;
 
