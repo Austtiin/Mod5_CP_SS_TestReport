@@ -15,6 +15,7 @@ import org.bouncycastle.crypto.params.ParametersWithIV;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -83,22 +84,19 @@ public class CryptoClass {
     //Update file with encrypted content method
     //This method will take in the file name, the new content, and the algorithm
     //It will update the file with the new encrypted content
-    public static void updateFileWithEncryptedContent(String fileName, String newContent, String algorithm) throws Exception {
+
+    public static void updateFileWithEncryptedContent(String fileName, String algorithm) throws Exception {
         String filePath = Paths.get(DATA_FOLDER, fileName).toString();
-        String validatedContent = validateInput(newContent);
-        String encrypted = encrypt(validatedContent, algorithm);
-        Files.write(Paths.get(filePath), encrypted.getBytes());
+        String content = new String(Files.readAllBytes(Paths.get(filePath)), StandardCharsets.UTF_8);
+        String encrypted = encrypt(content, algorithm);
+        Files.write(Paths.get(filePath), encrypted.getBytes(StandardCharsets.UTF_8));
     }
 
-
-    //Update file with decrypted content method
-    //This method will take in the file name and the algorithm
-    //It will update the file with the new decrypted content
     public static void updateFileWithDecryptedContent(String fileName, String algorithm) throws Exception {
         String filePath = Paths.get(DATA_FOLDER, fileName).toString();
-        String content = new String(Files.readAllBytes(Paths.get(filePath)));
+        String content = new String(Files.readAllBytes(Paths.get(filePath)), StandardCharsets.UTF_8);
         String decrypted = decrypt(content, algorithm);
-        Files.write(Paths.get(filePath), decrypted.getBytes());
+        Files.write(Paths.get(filePath), decrypted.getBytes(StandardCharsets.UTF_8));
     }
 
 
@@ -106,91 +104,38 @@ public class CryptoClass {
     //This method will take in the data and the algorithm
     //It will encrypt the data and return the encrypted data
     private static String encrypt(String data, String algorithm) {
-
-        //i will do my best to explain what is going on here
-        //bring in the data and the algorithm
-
-        //try to encrypt the data with the algorithm
         try {
-
-            //find out if the algorithm is ChaCha20
             if (CHACHA_ALGORITHM.equals(algorithm)) {
-                //ChaCha must have a nonce of 8 bytes
                 if (CHACHA_NONCE.length != 8) {
-                    throw new IllegalArgumentException("ChaCha20 nonce must be 8 bytes.");
+                    throw new IllegalArgumentException("ChaCha20 nonce must be 12 bytes.");
                 }
-
-                //create a new ChaChaEngine with 20 rounds
                 ChaChaEngine engine = new ChaChaEngine(20);
-
-                //create a new ParametersWithIV object with the key and the nonce
                 ParametersWithIV paramSpec = new ParametersWithIV(new KeyParameter(CHACHA_KEY), CHACHA_NONCE);
-
-                //initialize the engine with the key and the nonce
                 engine.init(true, paramSpec);
-
-                //create a new byte array with the length of the data
-                byte[] output = new byte[data.length()];
-
-                //process the bytes of the data
-                engine.processBytes(data.getBytes(), 0, data.length(), output, 0);
-
-                //log the success of the encryption
-                LOGGER.info("ChaCha20 encryption successful. Data length: " + data.length());
-
-                //return the encrypted data
+                byte[] output = new byte[data.getBytes(StandardCharsets.UTF_8).length];
+                engine.processBytes(data.getBytes(StandardCharsets.UTF_8), 0, data.getBytes(StandardCharsets.UTF_8).length, output, 0);
                 return "encrypted_" + Base64.getEncoder().encodeToString(output);
-
-
-
-            //if the algorithm is AES or Blowfish
             } else if (AES_ALGORITHM.equals(algorithm) || BLOWFISH_ALGORITHM.equals(algorithm)) {
-                //create a new cipher object with the algorithm
                 Cipher cipher = Cipher.getInstance(algorithm);
-                //create a new key with the algorithm
                 byte[] key = AES_ALGORITHM.equals(algorithm) ? AES_KEY : BLOWFISH_KEY;
-                //initialize the cipher with the key
                 cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key, algorithm));
-                //encrypt the data
-                byte[] encryptedData = cipher.doFinal(data.getBytes());
-                //log the success of the encryption
-                LOGGER.info("Encryption successful. Data length: " + data.length());
-                //return the encrypted data
+                byte[] encryptedData = cipher.doFinal(data.getBytes(StandardCharsets.UTF_8));
                 return "encrypted_" + Base64.getEncoder().encodeToString(encryptedData);
-
-
-                //if the algorithm is RC4
             } else if (RC4_ALGORITHM.equals(algorithm)) {
-                //create a new cipher object with the algorithm
                 Cipher cipher = Cipher.getInstance(algorithm);
-                //initialize the cipher with the key
                 cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(RC4_KEY, algorithm));
-                //encrypt the data
-                byte[] encryptedData = cipher.doFinal(data.getBytes());
-                //log the success of the encryption
-                LOGGER.info("RC4 encryption successful. Data length: " + data.length());
-                //return the encrypted data
+                byte[] encryptedData = cipher.doFinal(data.getBytes(StandardCharsets.UTF_8));
                 return "encrypted_" + Base64.getEncoder().encodeToString(encryptedData);
-
-                //if the algorithm is not supported
             } else {
                 throw new IllegalArgumentException("Unsupported algorithm: " + algorithm);
             }
         } catch (Exception ex) {
-            LOGGER.log(Level.SEVERE, "Error during encryption with algorithm: " + algorithm, ex);
             throw new RuntimeException(ex);
         }
     }
 
-
-
-    //Decrypt method
-    //This method will take in the data and the algorithm
-    //It will decrypt the data and return the decrypted data
     private static String decrypt(String data, String algorithm) {
-
         try {
-            //same deal just decrypt if the algorithm is ChaCha20
             if (CHACHA_ALGORITHM.equals(algorithm)) {
                 ChaChaEngine engine = new ChaChaEngine(20);
                 ParametersWithIV paramSpec = new ParametersWithIV(new KeyParameter(CHACHA_KEY), CHACHA_NONCE);
@@ -198,25 +143,21 @@ public class CryptoClass {
                 byte[] decodedData = Base64.getDecoder().decode(data.replace("encrypted_", ""));
                 byte[] output = new byte[decodedData.length];
                 engine.processBytes(decodedData, 0, decodedData.length, output, 0);
-                LOGGER.info("ChaCha20 decryption successful. Encrypted data length: " + data.length());
-                return new String(output);
+                return new String(output, StandardCharsets.UTF_8);
             } else if (AES_ALGORITHM.equals(algorithm) || BLOWFISH_ALGORITHM.equals(algorithm)) {
                 Cipher cipher = Cipher.getInstance(algorithm);
                 byte[] key = AES_ALGORITHM.equals(algorithm) ? AES_KEY : BLOWFISH_KEY;
                 cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key, algorithm));
-                LOGGER.info("Decryption successful. Encrypted data length: " + data.length());
-                return new String(cipher.doFinal(Base64.getDecoder().decode(data.replace("encrypted_", ""))));
+                return new String(cipher.doFinal(Base64.getDecoder().decode(data.replace("encrypted_", ""))), StandardCharsets.UTF_8);
             } else if (RC4_ALGORITHM.equals(algorithm)) {
                 Cipher cipher = Cipher.getInstance(algorithm);
                 cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(RC4_KEY, algorithm));
                 byte[] decodedData = Base64.getDecoder().decode(data.replace("encrypted_", ""));
-                LOGGER.info("RC4 decryption successful. Encrypted data length: " + data.length());
-                return new String(cipher.doFinal(decodedData));
+                return new String(cipher.doFinal(decodedData), StandardCharsets.UTF_8);
             } else {
                 throw new IllegalArgumentException("Unsupported algorithm: " + algorithm);
             }
         } catch (Exception ex) {
-            LOGGER.log(Level.SEVERE, "Error during decryption with algorithm: " + algorithm, ex);
             throw new RuntimeException(ex);
         }
     }

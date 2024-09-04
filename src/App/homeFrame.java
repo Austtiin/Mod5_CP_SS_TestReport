@@ -7,6 +7,9 @@
 
 //This is more of the GUI side of the application and is where the user will interact with the application
 
+//we will show the MD5 hash for the GenerateTextFile.java file here as a button to click.
+//This will be the code word for the live classroom.
+
 
 //Austin Stephens
 //Rasmussen University
@@ -26,6 +29,8 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 public class homeFrame extends JFrame {
@@ -67,6 +72,7 @@ public class homeFrame extends JFrame {
         JButton inputButton = getJButton("Encrypt/Decrypt from keyboard input", buttonColor, textColor, font);
         JButton exitButton = getJButton("Exit", buttonColor, textColor, font);
         JButton reportTestButton = getJButton("Run Report Test Case", buttonColor, textColor, font);
+        JButton md5HashButton = getJButton("Generate MD5 Hash", buttonColor, textColor, font);
 
 
         //fileEncryptButton
@@ -87,7 +93,7 @@ public class homeFrame extends JFrame {
                             JOptionPane.QUESTION_MESSAGE, null, new String[]{"AES", "Blowfish", "ChaCha20", "RC4"}, "AES");
 
                     // Encrypt the selected file using the chosen algorithm
-                    CryptoClass.updateFileWithEncryptedContent(fileName, fileName, algorithm);
+                    CryptoClass.updateFileWithEncryptedContent(fileName, algorithm);
 
                     // Update the display area with a success message
                     displayArea.setText("File " + fileName + " has been updated with encrypted content.");
@@ -147,76 +153,63 @@ public class homeFrame extends JFrame {
         //this was added week 5 to test the encryption time of the different algorithms
         reportTestButton.addActionListener(new ActionListener() {
             @Override
-
-            //This will test the encryption time of the different algorithms
             public void actionPerformed(ActionEvent e) {
-
-                //try and run the test
                 try {
                     int runs = 20;
-                    // Fixed number of runs as per requirements
-
                     String[] algorithms = {"AES", "Blowfish", "ChaCha20", "RC4"};
                     StringBuilder report = new StringBuilder();
-
-                    //large data of 10MB
                     File largeFile = new File("src/data/10mb-examplefile-com.txt");
                     String fileContent = new String(Files.readAllBytes(largeFile.toPath()));
+                    timer Timer = new timer();
 
-                    // Run the test for each algorithm
                     for (String algorithm : algorithms) {
                         long totalEncryptTime = 0;
-
-
-                        //run the test for each algorithm
                         for (int i = 0; i < runs; i++) {
-                            // Measure encryption time
-                            timer Timer = new timer();
                             Timer.start();
                             crypto.processInput(fileContent, algorithm);
                             Timer.stop();
                             long encryptTime = Timer.getDuration();
                             totalEncryptTime += encryptTime;
-
-                            //append the report to the string
-                            report.append("Algorithm: ").append(algorithm)
-                                    .append("\nRun ").append(i + 1).append(" Encryption Time: ").append(encryptTime).append(" ms\n");
+                            System.out.println("Algorithm: " + algorithm + " | Run " + (i + 1) + " Encryption Time: " + encryptTime + " ms");
                         }
-
-                        // Calculate the average encryption time
                         long avgEncryptTime = totalEncryptTime / runs;
-
-
-                        //append the report to the string
+                        Timer.addAverageTime(avgEncryptTime, algorithm);
                         report.append("Algorithm: ").append(algorithm)
                                 .append("\nAverage Encryption Time: ").append(avgEncryptTime).append(" ms\n\n");
+                        System.out.println("Algorithm: " + algorithm + " | Average Encryption Time: " + avgEncryptTime + " ms");
                     }
-
-                    // Output the report to a file
                     Files.write(Paths.get("src/data/reportResults.txt"), report.toString().getBytes());
-
-                    // Display the report in the display area
                     displayArea.setText(report.toString());
+                    Timer.printAverageTimes(runs);
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
                 }
             }
         });
 
+        md5HashButton.addActionListener(e -> {
+            try {
+                File file = new File("src/data/GenerateTextFile.java");
+                String fileContent = new String(Files.readAllBytes(file.toPath()));
+                String md5Hash = generateMD5Hash(fileContent);
+                displayArea.setText("MD5 Hash of GenerateTextFile.java:\n" + md5Hash);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
+            }
+        });
 
-        //adding buttons here
         panel.add(fileEncryptButton);
         panel.add(fileDecryptButton);
         panel.add(inputButton);
         panel.add(exitButton);
         panel.add(reportTestButton);
+        panel.add(md5HashButton); // Add new button to panel
 
         add(panel, BorderLayout.CENTER);
         add(new JScrollPane(displayArea), BorderLayout.SOUTH);
 
         setVisible(true);
     }
-
 
     //This will get the button
     private JButton getJButton(String text, Color backgroundColor, Color foregroundColor, Font font) {
@@ -228,9 +221,21 @@ public class homeFrame extends JFrame {
         return button;
     }
 
+    //for week 4 code word
+    private String generateMD5Hash(String input) throws NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        byte[] messageDigest = md.digest(input.getBytes());
+        StringBuilder sb = new StringBuilder();
+        for (byte b : messageDigest) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
+    }
 
     //this is just the main method
     public static void main(String[] args) {
         SwingUtilities.invokeLater(homeFrame::new);
     }
+
+
 }

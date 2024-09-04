@@ -38,6 +38,10 @@ Uses System.currentTimeMillis() method in a “stopwatch” style test scheme
 //This week we are going to add a stopwatch to our program to calculate the time it takes to encrypt a large text file using AES, Blowfish, and RC4.
 //This class will be universal so we can use it in our CryptoClass.java file.
 
+//For our live classroom code word we will find the MD5 hash for the GenerateTextFile.java
+// that you are to download and use for the Module 5 Course Project Assignment.
+
+
 package Solution;
 import App.homeFrame;
 import javax.swing.*;
